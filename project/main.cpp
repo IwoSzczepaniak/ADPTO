@@ -6,28 +6,19 @@ using namespace std;
 
 
 int main() {
-    ifstream inputFile("cha0.in");
-    if (!inputFile.is_open()) {
-        cerr << "Nie można otworzyć pliku.";
-        return 1;
-    }
+    // for (const string& row : grid) {
+    //     cout << row << endl;
+    // }
+    // cout << endl;
 
     int cols, rows, max_moves;
-    inputFile >> cols >> rows >> max_moves;
+    cin >> cols >> rows >> max_moves;
 
     vector<string> grid(rows);
     for (int i = 0; i < rows; ++i) {
-        inputFile >> grid[i];
+        cin >> grid[i];
     }
 
-    inputFile.close();
-
-    
-    cout << "Wczytana siatka:" << endl;
-    for (const string& row : grid) {
-        cout << row << endl;
-    }
-    cout << endl;
 
     bool reversed = false;
     auto trueRow = [rows, reversed](const Car car){
@@ -59,16 +50,17 @@ int main() {
         reverse(grid.begin(), grid.end());
         dean = findDean(grid, rows, cols);
         reversed = true;
-        // cout << "Reversed" << endl;
     }    
 
     set<Car> set;
     set = explore_tree(grid, rows, cols, dean, set);
 
+    cout << set.size() + 1 << endl;
+
     for (auto it = set.begin(); it != set.end(); ++it) {
 
         if (it->type == CarType::Horizontal)
-            cout << it->col << " " << trueRow(*it) << " L " <<  it->move <<  endl; // move length to change
+            cout << it->col << " " << trueRow(*it) << " L " <<  it->move <<  endl; // problems with move for many cars in a row
 
         else if (it->type == CarType::Vertical)
             cout << it->col << " " << trueRow(*it) << moveVertical(it) <<  it->move  <<  endl;
