@@ -28,7 +28,21 @@ int main() {
         cout << row << endl;
     }
     cout << endl;
+
     bool reversed = false;
+    auto trueRow = [rows, reversed](const Car car){
+        if (reversed)
+            return rows - car.row  - 1;
+        else
+            return car.row;
+    };
+
+    auto moveVertical = [reversed](auto &it){
+        if (it->row == 1 && !reversed || it->row == 3 && reversed)
+            return " D ";
+        else
+            return " U ";
+    };  
 
     Car dean = findDean(grid, rows, cols);
     if (dean.length == -1) {
@@ -45,35 +59,24 @@ int main() {
         reverse(grid.begin(), grid.end());
         dean = findDean(grid, rows, cols);
         reversed = true;
+        // cout << "Reversed" << endl;
     }    
 
     set<Car> set;
     set = explore_tree(grid, rows, cols, dean, set);
 
-    if (!reversed) {
-        for (auto it = set.begin(); it != set.end(); ++it) {
-            if (it->type == CarType::Horizontal)
-                cout << it->col << " " << it->row << " L " <<  it->col - 1 <<  endl; // assumption that always car moves max(sol. is class field) to the LEFT TODO
-            else if (it->type == CarType::Vertical)
-                cout << it->col << " " << it->row << " U " <<  1  <<  endl;
-            else
-                cout << "Unknown type" << endl;
-        }
-        cout << dean.col << " " << dean.row << " R " <<  cols - dean.col <<  endl;
+    for (auto it = set.begin(); it != set.end(); ++it) {
 
-    } 
+        if (it->type == CarType::Horizontal)
+            cout << it->col << " " << trueRow(*it) << " L " <<  it->move <<  endl; // move length to change
 
-    else {
-        // cout << "Reversed" << endl;
-        for (auto it = set.begin(); it != set.end(); ++it) {
-            if (it->type == CarType::Horizontal)
-                cout << it->col << " " << rows - it->row  - 1 << " L " <<  it->length<<  endl; // assumption that always car moves max(sol. is class field) to the LEFT TODO
-            else if (it->type == CarType::Vertical)
-                cout << it->col << " " << rows - it->row - 1 << " D " <<  1 <<  endl;
-        }
-        cout << dean.col << " " << rows - dean.row - 1 << " R " <<  cols - dean.col <<  endl;
-
+        else if (it->type == CarType::Vertical)
+            cout << it->col << " " << trueRow(*it) << moveVertical(it) <<  it->move  <<  endl;
+            
+        else
+            cout << "Unknown type" << endl;
     }
+    cout << dean.col << " " << trueRow(dean) << " R " <<  cols - dean.col <<  endl;
 
     return 0;
 }

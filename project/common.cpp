@@ -22,7 +22,7 @@ Car findDean(const vector<string>& grid, const int& rows, const int& cols) {
     return Car(CarType::Dean, -1, -1, -1);
 }
 
-void detectHorizontalColliding(vector<string>& grid, const int& rows, const int& cols, Car &parent, char current, int i, int j){
+void detectHorizontalColliding(vector<string>& grid, const int& rows, const int& cols, Car &parent, char current, const int& i, const int& j){
     // assume we look for cars on the right
     int k = j+1;
     while(k < cols && grid[i][k] == current + 1){
@@ -52,12 +52,18 @@ void detectVerticalColliding(vector<string>& grid, const int& rows, const int& c
     parent.children.emplace_back(CarType::Vertical, carLength, k-carLength + 1, j);
 }
 
+int detectHorizontalOnLine(vector<string>& grid, const int& rows, const int& cols, Car &parent, char current, int i, int j){
+    int carLength = current - 'a' + 1;
+    parent.children.emplace_back(CarType::Horizontal, carLength, i, j-carLength + 1);
+    return carLength;
+}
+
 void findCarsOnLine(vector<string>& grid, const int& rows, const int& cols, Car &parent) {
     
     int i = parent.row;
     int j = parent.col;
     if (CarType::Dean == parent.type){
-        // TODO INDEX PROBLEM
+        j++;
         for(;j<cols;++j){
             char current = grid[i][j];
 
@@ -71,22 +77,22 @@ void findCarsOnLine(vector<string>& grid, const int& rows, const int& cols, Car 
     }
 
     else if(CarType::Horizontal == parent.type){
-        // TODO INDEX PROBLEM
+        --j;
         for(;j>0;--j){
             char current = grid[i][j];
             if (current == '.' || current == '#')
                 continue;
+            else if(current >= 'a' and current <= 'd'){
+                j-=detectHorizontalOnLine(grid, rows, cols, parent, current, i, j);
+            }
             else if ((current >= 'x' and current <= 'z') || current == 'w' ) { 
                 detectVerticalColliding(grid, rows, cols, parent, current, i, j);
-            }
-            else if(current >= 'a' and current <= 'd'){
-                // TODO
             }
         }
     }
 
     else{
-        // TODO INDEX PROBLEM
+        --i;
         for(;i>0;--i){
             char current = grid[i][j];
             if (current == '.' || current == '#')
@@ -98,10 +104,21 @@ void findCarsOnLine(vector<string>& grid, const int& rows, const int& cols, Car 
     }
 }
 
-void putCollidingOnset(Car &parent, set<Car> &set){
+void insertCar(Car &car, set<Car> &set, int parent_move){
+    // if car is horizontal every new collision adds one more move
+    if (car.type == CarType::Horizontal && set.find(car) != set.end()){
+            car.move = set.find(car)->move + 1;
+            if (parent_move > 0)
+                car.move == parent_move;
+            set.erase(car);
+    }
+    set.insert(car);
+}
+
+void putCollidingOnSet(Car &parent, set<Car> &set){
     vector<Car> carsOnLine = parent.children;
-    for (const Car& car : carsOnLine) {
-        set.insert(car);
+    for (Car& car : carsOnLine) {
+        insertCar(car, set, parent.move);
     }
 }
 
@@ -109,12 +126,11 @@ set<Car> explore_tree(vector<string>& grid, const int& rows, const int& cols, Ca
     
     findCarsOnLine(grid, rows, cols, current);
     if (current.children.empty()){
-        set.insert(current);
-
+        insertCar(current, set, 0);
         return set; // only to speed up
     }
 
-    putCollidingOnset(current, set);
+    putCollidingOnSet(current, set);
 
     for (Car& car : current.children) {
         explore_tree(grid, rows, cols, car, set);

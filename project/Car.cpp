@@ -15,6 +15,7 @@ public:
     int row;
     int col;
     vector<Car> children;
+    int move = 1;
 
     Car(CarType t, int len, int row, int col) : type(t), length(len), row(row), col(col) {}
 
