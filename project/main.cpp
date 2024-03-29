@@ -6,7 +6,7 @@ using namespace std;
 
 
 int main() {
-    ifstream inputFile("cha0_rev.in");
+    ifstream inputFile("cha0.in");
     if (!inputFile.is_open()) {
         cerr << "Nie można otworzyć pliku.";
         return 1;
@@ -41,7 +41,6 @@ int main() {
         return 0;
     }
 
-    // cout << "Samochód dziekana jest na: " << dean.row << ", " << dean.col << endl;
     else if (dean.row == 1){
         reverse(grid.begin(), grid.end());
         dean = findDean(grid, rows, cols);
@@ -65,10 +64,10 @@ int main() {
     } 
 
     else {
-        cout << "Reversed" << endl;
+        // cout << "Reversed" << endl;
         for (auto it = set.begin(); it != set.end(); ++it) {
             if (it->type == CarType::Horizontal)
-                cout << it->col << " " << rows - it->row  - 1 << " L " <<  it->col - 1 <<  endl; // assumption that always car moves max(sol. is class field) to the LEFT TODO
+                cout << it->col << " " << rows - it->row  - 1 << " L " <<  it->length<<  endl; // assumption that always car moves max(sol. is class field) to the LEFT TODO
             else if (it->type == CarType::Vertical)
                 cout << it->col << " " << rows - it->row - 1 << " D " <<  1 <<  endl;
         }

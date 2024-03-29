@@ -36,7 +36,6 @@ void detectHorizontalColliding(vector<string>& grid, const int& rows, const int&
 }
 
 void detectVerticalColliding(vector<string>& grid, const int& rows, const int& cols, Car &parent, char current, int i, int j){
-    
 
     // assume we look for cars above
     int k = i+1;
@@ -57,7 +56,7 @@ void findCarsOnLine(vector<string>& grid, const int& rows, const int& cols, Car 
     
     int i = parent.row;
     int j = parent.col;
-    if(CarType::Horizontal == parent.type || CarType::Dean == parent.type){
+    if (CarType::Dean == parent.type){
         // TODO INDEX PROBLEM
         for(;j<cols;++j){
             char current = grid[i][j];
@@ -68,7 +67,21 @@ void findCarsOnLine(vector<string>& grid, const int& rows, const int& cols, Car 
             else if ((current >= 'x' and current <= 'z') || current == 'w' ) { 
                 detectVerticalColliding(grid, rows, cols, parent, current, i, j);
             }
+        }
+    }
 
+    else if(CarType::Horizontal == parent.type){
+        // TODO INDEX PROBLEM
+        for(;j>0;--j){
+            char current = grid[i][j];
+            if (current == '.' || current == '#')
+                continue;
+            else if ((current >= 'x' and current <= 'z') || current == 'w' ) { 
+                detectVerticalColliding(grid, rows, cols, parent, current, i, j);
+            }
+            else if(current >= 'a' and current <= 'd'){
+                // TODO
+            }
         }
     }
 
