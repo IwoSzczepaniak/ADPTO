@@ -102,7 +102,7 @@ vector<string> createMap(const vector<string> &previousMap, const vector<Car> &c
 
     for(int y = 1; y < (int)map.size() - 1; y++) {
         for(int x = 1; x < (int)map[y].size() - 1; x++) {
-            map[y][x] = '.';
+            if (previousMap[y][x] != '#') map[y][x] = '.';
         }
     }
 
