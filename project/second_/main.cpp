@@ -5,6 +5,9 @@
 #include <chrono>
 #include <algorithm>
 #include <stack>
+#include <memory>
+#include <utility>
+
 
 using namespace std;
 
@@ -34,13 +37,13 @@ public:
 class Node {
 public:
     vector<Car> cars;
-    Node* parent;
+    shared_ptr<Node> parent;
     string operation;
     vector<string> map;
     stack<string> moves;
 
 
-    Node(vector<Car>& cars, Node* parent, string operation, vector<string>& map)
+    Node(vector<Car>& cars, shared_ptr<Node> parent, string operation, vector<string>& map)
         : cars(cars), parent(parent), operation(operation), map(map) {}
 };
 
@@ -54,11 +57,11 @@ vector<string> loadMap(int H, int W) {
     return map;
 }
 
-vector<Car> findCars(vector<string> map) {
+vector<Car> findCars(vector<string> &map) {
     vector<Car> cars;
     Car special_car(0, -1, -1, 'h');
-    for (int y = 0; y < map.size(); y++) {
-        for (int x = 0; x < map[y].size(); x++) {
+    for (int y = 0; y < (int)map.size(); y++) {
+        for (int x = 0; x < (int)map[y].size(); x++) {
             if (map[y][x] == 'o') {
                 if (special_car.x == -1) {
                     special_car.x = x;
@@ -69,14 +72,14 @@ vector<Car> findCars(vector<string> map) {
                 
             } else if (map[y][x] == 'a') {
                 int size = 1;
-                while (x + size < map[y].size() && map[y][x + size] == HORIZONTAL_SYMBOLS[size]) {
+                while (x + size < (int)map[y].size() && map[y][x + size] == HORIZONTAL_SYMBOLS[size]) {
                     size++;
                 }
                 cars.push_back(Car(size, x, y, 'h'));
                 
             }else if (map[y][x] == 'x') {
                 int size = 1;
-                while (y + size < map.size() && map[y + size][x] == VERTICAL_SYMBOLS[size]) {
+                while (y + size < (int)map.size() && map[y + size][x] == VERTICAL_SYMBOLS[size]) {
                     size++;
                 }
                 cars.push_back(Car(size, x, y, 'v'));
@@ -87,11 +90,11 @@ vector<Car> findCars(vector<string> map) {
     return cars;
 }
 
-vector<string> createMap(vector<string> previousMap, vector<Car> cars) {
+vector<string> createMap(const vector<string> &previousMap, const vector<Car> &cars) {
     vector<string> map = previousMap;
 
-    for(int y = 1; y < map.size() - 1; y++) {
-        for(int x = 1; x < map[y].size() - 1; x++) {
+    for(int y = 1; y < (int)map.size() - 1; y++) {
+        for(int x = 1; x < (int)map[y].size() - 1; x++) {
             map[y][x] = '.';
         }
     }
@@ -142,7 +145,7 @@ bool canMoveNSteps(const int &carNumber, Node& state, const int n, const char wa
     }
 
     else if (way == 'R'){
-        if (currentCar.x + n >= state.map[0].size()){
+        if (currentCar.x + n >= (int)state.map[0].size()){
             return false;
         }
         for (int i = 1; i <= n; i++){
@@ -166,7 +169,7 @@ bool canMoveNSteps(const int &carNumber, Node& state, const int n, const char wa
     }
 
     else if (way == 'D'){
-        if (currentCar.y + n >= state.map.size()){
+        if (currentCar.y + n >= (int)state.map.size()){
             return false;
         }
         for (int i = 1; i <= n; i++){
@@ -180,7 +183,7 @@ bool canMoveNSteps(const int &carNumber, Node& state, const int n, const char wa
     return true;
 }
 
-Node* move(Node* prevState, int carNumber, int n, char way) {
+shared_ptr<Node> move(shared_ptr<Node> prevState, const int &carNumber, int n, const char &way) {
     vector<Car> cars = prevState->cars;
     vector<string> prevMap = prevState->map;
     stack<string> moves = prevState->moves;
@@ -193,7 +196,7 @@ Node* move(Node* prevState, int carNumber, int n, char way) {
         currentCar.x += (way == 'R') ? n : (way == 'L') ? -n : 0;
         currentCar.y += (way == 'D') ? n : (way == 'U') ? -n : 0;
 
-        if (currentCar.special && currentCar.onTheEdge(prevState->map.size(), prevState->map[0].size())){
+        if (currentCar.special && currentCar.onTheEdge((int)prevState->map.size(), (int)prevState->map[0].size())){
             n+=1;
             if (currentCar.x == 0 || currentCar.y == 0){
                 n-=2;
@@ -207,30 +210,30 @@ Node* move(Node* prevState, int carNumber, int n, char way) {
     cars[carNumber] = currentCar;
     vector<string> newMap = createMap(prevMap, cars);
     
-    Node* newState = new Node(cars, prevState, "", newMap);
+    shared_ptr<Node> newState = make_shared<Node>(cars, prevState, "", newMap);
     newState->moves = moves;
     return newState;
 }
 
-Node* search(Node* root, const int &maxMoves, int& currentMoves) {
+shared_ptr<Node> search(shared_ptr<Node> root, const int &maxMoves, int& currentMoves) {
     if (currentMoves > maxMoves) {
         return NULL;
     }
 
     for (Car car : root->cars) {
-        if (car.special && car.onTheEdge(root->map.size(), root->map[0].size())){
+        if (car.special && car.onTheEdge((int)root->map.size(), (int)root->map[0].size())){
             return root;
         }
     }
 
-    int longestMove = max(root->map.size(), root->map[0].size());
-    for (int i = 0; i < root->cars.size(); i++) {
+    int longestMove = max((int)root->map.size(), (int)root->map[0].size());
+    for (int i = 0; i < (int)root->cars.size(); i++) {
         for (char direction : {'U', 'D', 'L', 'R'}) {
             for (int n = 1; n <= longestMove; n++) { 
-                Node* newNode = move(root, i, n, direction);
+                shared_ptr<Node> newNode = move(root, i, n, direction);
                 if (newNode != NULL) {
                     currentMoves++;
-                    Node* result = search(newNode, maxMoves, currentMoves);
+                    shared_ptr<Node> result = search(newNode, maxMoves, currentMoves);
                     if (result != NULL) {
                         return result;
                     }
@@ -250,20 +253,20 @@ int main() {
     
     vector<string> map = loadMap(H, W);
 
-    // for(int i = 0; i < map.size(); i++) {
+    // for(int i = 0; i < (int)map.size(); i++) {
     //     cout << map[i] << endl;
     // }
 
     vector<Car> cars = findCars(map);
-    Node* root = new Node(cars, NULL, "", map);
+    shared_ptr<Node> root = make_shared<Node>(cars, nullptr, "", map);
 
     int currentMoves = 0;
-    Node* solution = search(root, N, currentMoves);
+    shared_ptr<Node> solution = search(root, N, currentMoves);
 
     stack<string> res;
     if (solution != NULL) {
         stack<string> moves = solution->moves;
-        int numMoves = moves.size();
+        int numMoves = (int)moves.size();
         cout << numMoves << endl;
 
         while (!moves.empty()) {
@@ -278,6 +281,5 @@ int main() {
         cout << "Nie znaleziono rozwiązania w maksymalnej liczbie ruchów N." << endl;
     }
 
-    delete root;
     return 0;
 }
