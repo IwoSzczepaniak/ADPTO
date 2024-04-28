@@ -7,6 +7,8 @@
 #include <stack>
 #include <memory>
 #include <utility>
+#include <set>
+#include <queue>
 
 
 using namespace std;
@@ -216,41 +218,48 @@ shared_ptr<Node> move(shared_ptr<Node> prevState, const int &carNumber, int n, c
 }
 
 shared_ptr<Node> search(shared_ptr<Node> root, const int &maxMoves, int& currentMoves) {
-    if (currentMoves > maxMoves) {
-        return NULL;
-    }
+    queue<shared_ptr<Node>> q;
+    q.push(root);
+    set<vector<string>> visited;
 
-    for (Car car : root->cars) {
-        if (car.special && car.onTheEdge((int)root->map.size(), (int)root->map[0].size())){
-            return root;
+    while (!q.empty()) {
+        shared_ptr<Node> current = q.front();
+        q.pop();
+
+        if (visited.find(current->map) != visited.end()) {
+            continue;
         }
-    }
+        visited.insert(current->map);
 
-    int longestMove = max((int)root->map.size(), (int)root->map[0].size());
-    for (int i = 0; i < (int)root->cars.size(); i++) {
-        for (char direction : {'U', 'D', 'L', 'R'}) {
-            for (int n = 1; n <= longestMove; n++) { 
-                shared_ptr<Node> newNode = move(root, i, n, direction);
-                if (newNode != NULL) {
-                    currentMoves++;
-                    shared_ptr<Node> result = search(newNode, maxMoves, currentMoves);
-                    if (result != NULL) {
-                        return result;
+        for (Car& car : current->cars) {
+            if (car.special && car.onTheEdge((int)current->map.size(), (int)current->map[0].size())) {
+                return current;
+            }
+        }
+
+        for (int i = 0; i < (int)current->cars.size(); i++) {
+            int longestMove = max(abs((int)current->map.size() - current->cars[i].y), abs((int)current->map[0].size() - current->cars[i].x));
+            for (char direction : {'U', 'D', 'L', 'R'}) {
+                for (int n = 1; n <= longestMove; n++) {
+                    shared_ptr<Node> newNode = move(current, i, n, direction);
+                    if (newNode != NULL) {
+                        currentMoves++;
+                        q.push(newNode);
                     }
-                    currentMoves--;
-                } 
+                }
             }
         }
     }
 
-    return NULL;
+    return nullptr;
 }
+
 
 
 int main() {
     int W, H, N;
     cin >> W >> H >> N;
-    
+
     vector<string> map = loadMap(H, W);
 
     vector<Car> cars = findCars(map);
@@ -273,9 +282,7 @@ int main() {
             cout << res.top() << endl;
             res.pop();
         }
-    } else {
-        cout << "Nie znaleziono rozwiązania w maksymalnej liczbie ruchów N." << endl;
     }
-
+    
     return 0;
 }
