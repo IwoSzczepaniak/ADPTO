@@ -253,10 +253,6 @@ int main() {
     
     vector<string> map = loadMap(H, W);
 
-    // for(int i = 0; i < (int)map.size(); i++) {
-    //     cout << map[i] << endl;
-    // }
-
     vector<Car> cars = findCars(map);
     shared_ptr<Node> root = make_shared<Node>(cars, nullptr, "", map);
 
