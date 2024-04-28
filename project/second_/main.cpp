@@ -25,6 +25,10 @@ public:
     void printCar() {
         cout << "size:" << size << " x:" << x << " y:" << y << " dir:" << direction << endl;
     }
+
+    bool onTheEdge(const int &H, const int &W){
+        return (x + size >= W) || (y + size >= H);
+    }
 };
 
 class Node {
@@ -180,15 +184,21 @@ Node* move(Node* prevState, int carNumber, int n, char way) {
     vector<Car> cars = prevState->cars;
     vector<string> prevMap = prevState->map;
     stack<string> moves = prevState->moves;
+    Car currentCar = cars[carNumber];
 
     if (canMoveNSteps(carNumber, *prevState, n, way)){
-        cars[carNumber].x += (way == 'R') ? n : (way == 'L') ? -n : 0;
-        cars[carNumber].y += (way == 'D') ? n : (way == 'U') ? -n : 0;
-        moves.push(to_string(cars[carNumber].x) + ' ' + to_string(cars[carNumber].y) + ' ' + way + ' ' + to_string(n));
+        currentCar.x += (way == 'R') ? n : (way == 'L') ? -n : 0;
+        currentCar.y += (way == 'D') ? n : (way == 'U') ? -n : 0;
+
+        if (currentCar.special && currentCar.onTheEdge(prevState->map.size(), prevState->map[0].size())){
+            n+=1;
+        }
+        moves.push(to_string(currentCar.x) + ' ' + to_string(currentCar.y) + ' ' + way + ' ' + to_string(n));
     } else {
         return NULL;
     }
 
+    cars[carNumber] = currentCar;
     vector<string> newMap = createMap(prevMap, cars);
     
     Node* newState = new Node(cars, prevState, "", newMap);
@@ -196,12 +206,39 @@ Node* move(Node* prevState, int carNumber, int n, char way) {
     return newState;
 }
 
+Node* search(Node* root, const int &maxMoves, int& currentMoves) {
+    if (currentMoves > maxMoves) {
+        return NULL;
+    }
 
-Node* search(Node* root) {
-    return root;
+    for (Car car : root->cars) {
+        if (car.special) {
+            if ((car.direction == 'h' && car.x + car.size >= root->map[0].size()) || 
+                (car.direction == 'v' && car.y + car.size >= root->map.size())) {
+                return root;
+            }
+        }
+    }
+
+    int longestMove = max(root->map.size(), root->map[0].size());
+    for (int i = 0; i < root->cars.size(); i++) {
+        for (char direction : {'U', 'D', 'L', 'R'}) {
+            for (int n = 1; n <= longestMove; n++) { 
+                Node* newNode = move(root, i, n, direction);
+                if (newNode != NULL) {
+                    currentMoves++;
+                    Node* result = search(newNode, maxMoves, currentMoves);
+                    if (result != NULL) {
+                        return result;
+                    }
+                    currentMoves--;
+                } 
+            }
+        }
+    }
+
+    return NULL;
 }
-
-
 
 
 int main() {
@@ -217,23 +254,27 @@ int main() {
     vector<Car> cars = findCars(map);
     Node* root = new Node(cars, NULL, "", map);
 
-    Node* newNode = move(root, 1, 1, 'D');
-    if (newNode != NULL) {
-        cout << "I can move" << endl;
-        for(int i = 0; i < newNode->map.size(); i++) {
-            cout << newNode->map[i] << endl;
-        }
-        stack<string> moves = newNode->moves;
+    int currentMoves = 0;
+    Node* solution = search(root, N, currentMoves);
+
+    stack<string> res;
+    if (solution != NULL) {
+        stack<string> moves = solution->moves;
+        int numMoves = moves.size();
+        cout << numMoves << endl;
+
         while (!moves.empty()) {
-            cout << moves.top() << endl;
+            res.push(moves.top());
             moves.pop();
         }
+        while (!res.empty()) {
+            cout << res.top() << endl;
+            res.pop();
+        }
     } else {
-        cout << "I can't move" << endl;
+        cout << "Nie znaleziono rozwiązania w maksymalnej liczbie ruchów N." << endl;
     }
 
-
-
-    // Node* result = search(root);
+    delete root;
     return 0;
 }

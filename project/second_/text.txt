@@ -1,0 +1,65 @@
+Problem
+Stwórz program, który wskaże w jakiej kolejności i które samochody należy przesunąć tak, żeby wy-
+konać najwyżej zadaną liczbę ruchów i wyjechać samochodem specjalnym.
+
+Wejście stanowi opis planszy o rozmiarach W × H pól (W to szerokośc, H to wysokośc planszy).
+Na każdym polu planszy znajduje się jeden znak oznaczający albo wolne pole, albo nieprzesuwalną
+blokadę, albo samochód. Każdy samochód zajmuje od 2 do 4 pól i albo jest zorientowany poziomo
+albo pionowo. Każdy samochód można przesuwać wyłącznie zgodnie z jego orientacją. Jeden ruch
+polega na przesunięciu jednego samochodu o dowolną liczbę pól w zadanym kierunku (góra/dół dla
+orientacji pionowej, prawo/lewo dla orientacji poziomej) ale tak, że w żadnym momencie samochód
+nie może zajmować pola, na którym jest już inny samochód lub blokada. 
+
+Samochód specjalny może wyjechać z parkingu w momencie gdy można go przesunąć poza obszar parkingu. 
+Żaden inny samochód nie może opuścić terenu parkingu, ani nawet znaleźć się częściowo poza nim. Celem
+jest doprowadzenie do wyjazdu samochodu specjalnego wykonując najwyżej N ruchów (ostatni ruch, w którym
+Dziekan opuszcza parking także należy uwzględnić w tych N ruchach; co najmniej jeden fragment
+samochodu specjalnego musi się znaleźć poza planszą).
+
+Wejście
+Wejście składa się z jednego wiersza zawierającego po kolei liczby W , H, oraz N, po którym następu-
+je ciąg H wierszy, gdzie każdy zawiera W znaków opisujących kolejne pola planszy, o następującym
+znaczeniu:
+
+1. "." – puste pole,
+2. "#" – pole z blokadą,
+3. "a" – początek samochodu zorientowanego poziomo, kolejne pole na prawo zawiera symbol
+"b", dalsze pola mogą zawierać "c" i dalej "d" (auta o długości 2 kończą się na "b", auta o
+długości 3 kończą się na "c", a te o długości 4 kończą się na "d").
+4. "x" – początek samochodu zorientowanego pionowo, kolejne pole w dół od tego zawiera symbol
+"y", dalsze pola mogą zawierać "z" i dalej "w" (auta o długości 2 kończą się na "y", auta o
+długości 3 kończą się na "z", a te o długości 4 kończą się na "w").
+5. "o" – pole zajmowane przez samochód specjalny (samochód specjalny składa się z od 2 do 4
+symboli "o" ułożonych po kolei pionowo lub poziomo, zgodnie z jego orientacją; na planszy
+jest tylko jeden samochód specjalny).
+
+Przykład. Poniżej znajduje się opis przykładowego zadania:
+6 5 4
+######
+#..ab#
+#..xx#
+#ooyy.
+######
+
+
+Wyjście
+Pierwszy wiersz wejścia powinien zawierać liczbę M ruchów, które zawiera rozwiązanie. 
+Następnie wyjście powinno zawierać M wierszy postaci X Y D L, opisukących kolejne ruchy:
+1. X Y to współrzędne pola, na którym znajduje się przesuwany w danym ruchu samochód
+(można wskazać dowolne pole zajmowane przez ten samochód; lewy górny narożnik planszy
+ma współrzędne 0,0).
+2. D to kierunek ruchu (U to ruch w górę, D to ruch w dół, L to ruch w lewo, R to ruch w prawo;
+ruch musi być zgodny z orientacją samochodu).
+3. L to liczba pół, o które należy przesunąć samochód (przesunięcie nie może prowadzić do kolizji
+z innym samochodem lub blokadą).
+Ostatni ruch powinien doprowadzić do sytuacji, że samochód specjalny znajdzie się co najmniej
+jednym swoim elementem poza polem parkingu.
+2
+
+Przykład. Przykładowym rozwiązaniem powyższej planszy jest następujące wyjście:
+4
+3 1 L 2
+3 3 U 1
+4 2 U 1
+2 3 R 4
+
