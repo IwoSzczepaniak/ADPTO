@@ -186,14 +186,20 @@ Node* move(Node* prevState, int carNumber, int n, char way) {
     stack<string> moves = prevState->moves;
     Car currentCar = cars[carNumber];
 
+    int xBeforeMove = currentCar.x;
+    int yBeforeMove = currentCar.y;
+
     if (canMoveNSteps(carNumber, *prevState, n, way)){
         currentCar.x += (way == 'R') ? n : (way == 'L') ? -n : 0;
         currentCar.y += (way == 'D') ? n : (way == 'U') ? -n : 0;
 
         if (currentCar.special && currentCar.onTheEdge(prevState->map.size(), prevState->map[0].size())){
             n+=1;
+            if (currentCar.x == 0 || currentCar.y == 0){
+                n-=2;
+            }
         }
-        moves.push(to_string(currentCar.x) + ' ' + to_string(currentCar.y) + ' ' + way + ' ' + to_string(n));
+        moves.push(to_string(xBeforeMove) + ' ' + to_string(yBeforeMove) + ' ' + way + ' ' + to_string(n));
     } else {
         return NULL;
     }
