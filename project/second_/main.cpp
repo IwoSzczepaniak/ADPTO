@@ -32,7 +32,7 @@ public:
     }
 
     bool onTheEdge(const int &H, const int &W){
-        return (direction == 'h' && x == 0) || (direction == 'h' && x + size >= W) || (direction == 'v' && y + size >= H) || (direction == 'v' && y == 0);
+        return (direction == 'h' && x <= 0) || (direction == 'h' && x + size >= W) || (direction == 'v' && y + size >= H) || (direction == 'v' && y <= 0);
     }
 };
 
@@ -69,6 +69,11 @@ vector<Car> findCars(vector<string> &map) {
                     special_car.x = x;
                     special_car.y = y;
                     special_car.special = true;
+                    if(map[y][x + 1] == 'o') {
+                        special_car.direction = 'h';
+                    } else {
+                        special_car.direction = 'v';
+                    }
                 }
                 special_car.size++;
                 
@@ -237,6 +242,7 @@ shared_ptr<Node> search(shared_ptr<Node> root, const int &maxMoves, int& current
             }
         }
 
+        // int longestMove = max((int)current->map.size(), (int)current->map[0].size());
         for (int i = 0; i < (int)current->cars.size(); i++) {
             int longestMove = max(abs((int)current->map.size() - current->cars[i].y), abs((int)current->map[0].size() - current->cars[i].x));
             for (char direction : {'U', 'D', 'L', 'R'}) {
@@ -283,6 +289,6 @@ int main() {
             res.pop();
         }
     }
-    
+
     return 0;
 }
