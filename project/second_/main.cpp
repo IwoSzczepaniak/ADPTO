@@ -205,9 +205,6 @@ shared_ptr<Node> move(shared_ptr<Node> prevState, const int &carNumber, int n, c
 
         if (currentCar.special && currentCar.onTheEdge((int)prevState->map.size(), (int)prevState->map[0].size())){
             n+=1;
-            if (currentCar.x == 0 || currentCar.y == 0){
-                n-=2;
-            }
         }
         moves.push(to_string(xBeforeMove) + ' ' + to_string(yBeforeMove) + ' ' + way + ' ' + to_string(n));
     } else {
@@ -242,7 +239,6 @@ shared_ptr<Node> search(shared_ptr<Node> root, const int &maxMoves, int& current
             }
         }
 
-        // int longestMove = max((int)current->map.size(), (int)current->map[0].size());
         for (int i = 0; i < (int)current->cars.size(); i++) {
             int longestMove = max(abs((int)current->map.size() - current->cars[i].y), abs((int)current->map[0].size() - current->cars[i].x));
             for (char direction : {'U', 'D', 'L', 'R'}) {
