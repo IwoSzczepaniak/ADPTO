@@ -27,7 +27,7 @@ public:
     }
 
     bool onTheEdge(const int &H, const int &W){
-        return (x + size >= W) || (y + size >= H);
+        return (direction == 'h' && x == 0) || (direction == 'h' && x + size >= W) || (direction == 'v' && y + size >= H) || (direction == 'v' && y == 0);
     }
 };
 
@@ -212,11 +212,8 @@ Node* search(Node* root, const int &maxMoves, int& currentMoves) {
     }
 
     for (Car car : root->cars) {
-        if (car.special) {
-            if ((car.direction == 'h' && car.x + car.size >= root->map[0].size()) || 
-                (car.direction == 'v' && car.y + car.size >= root->map.size())) {
-                return root;
-            }
+        if (car.special && car.onTheEdge(root->map.size(), root->map[0].size())){
+            return root;
         }
     }
 
@@ -247,9 +244,9 @@ int main() {
     
     vector<string> map = loadMap(H, W);
 
-    for(int i = 0; i < map.size(); i++) {
-        cout << map[i] << endl;
-    }
+    // for(int i = 0; i < map.size(); i++) {
+    //     cout << map[i] << endl;
+    // }
 
     vector<Car> cars = findCars(map);
     Node* root = new Node(cars, NULL, "", map);

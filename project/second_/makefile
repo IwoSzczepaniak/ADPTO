@@ -1,5 +1,7 @@
+CFLAGS = -g -Wall -std=c++11
+
 all:
-	g++ main.cpp -o main
-	./main < cha0.in
+	g++ $(CFLAGS) main.cpp -o main
+	./main < cah1.in
 clean:
 	rm -rf ./main
