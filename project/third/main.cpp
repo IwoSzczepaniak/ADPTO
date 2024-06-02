@@ -4,6 +4,7 @@
 #include <stack>
 #include <memory>
 #include <queue>
+#include <map>
 
 
 using namespace std;
@@ -264,6 +265,7 @@ priority_queue<shared_ptr<Node>, vector<shared_ptr<Node>>, NodeComparator> nodeQ
 shared_ptr<Node> search(const shared_ptr<Node>& current, const int& maxMoves, int& currentMoves, vector<bool>& moved) {
     priority_queue<shared_ptr<Node>, vector<shared_ptr<Node>>, NodeComparator> q;
     q.push(current);
+    map<char, int> longestMoves = {{'U', 0}, {'D', 0}, {'L', 0}, {'R', 0}};
 
     while (!q.empty()) {
         shared_ptr<Node> current = q.top();
@@ -274,9 +276,13 @@ shared_ptr<Node> search(const shared_ptr<Node>& current, const int& maxMoves, in
         }
 
         for (int i = 0; i < (int)current->cars.size(); i++) {
-            int longestMove = max(abs((int)current->map.size() - current->cars[i].y), abs((int)current->map[0].size() - current->cars[i].x));
+            // int longestMove = max(abs((int)current->map.size() - current->cars[i].y), abs((int)current->map[0].size() - current->cars[i].x));
+            longestMoves['U'] = current->map.size() - current->cars[i].y;
+            longestMoves['D'] = current->cars[i].y;
+            longestMoves['L'] = current->cars[i].x;
+            longestMoves['R'] = current->map[0].size() - current->cars[i].x;
             for (char direction : {'U', 'D', 'L', 'R'}) {
-                for (int n = 1; n <= longestMove; n++) {
+                for (int n = 1; n <= longestMoves[direction]; n++) {
                     shared_ptr<Node> newNode = move(current, i, n, direction);
                     if (newNode != NULL) {
                         currentMoves++;
