@@ -232,40 +232,60 @@ shared_ptr<Node> move(const shared_ptr<Node>& prevState, const int &carNumber, i
     return make_shared<Node>(cars, prevState, newMap, moves, prevState->specialCar);
 }
 
+int heuristic(const Node& node) {
+    int count = 0;
+    const auto& specialCar = node.specialCar;
+    if (specialCar->direction == 'h') {
+        for (const auto& car : node.cars) {
+            if (car.direction == 'h' && car.y == specialCar->y && car.x < specialCar->x) {
+                count++;
+            }
+        }
+    } else {
+        for (const auto& car : node.cars) {
+            if (car.direction == 'v' && car.x == specialCar->x && car.y < specialCar->y) {
+                count++;
+            }
+        }
+    }
+    return count;
+}
+
+struct NodeComparator {
+    bool operator()(const shared_ptr<Node>& n1, const shared_ptr<Node>& n2) {
+        return heuristic(*n1) > heuristic(*n2);
+    }
+};
+
+priority_queue<shared_ptr<Node>, vector<shared_ptr<Node>>, NodeComparator> nodeQueue;
+
+
 
 shared_ptr<Node> search(const shared_ptr<Node>& current, const int& maxMoves, int& currentMoves, vector<bool>& moved) {
-    if (current->specialCar->onTheEdge((int)current->map.size(), (int)current->map[0].size())) {
-        return current;
-    }
+    priority_queue<shared_ptr<Node>, vector<shared_ptr<Node>>, NodeComparator> q;
+    q.push(current);
 
-    if (currentMoves >= maxMoves) {
-        return nullptr;
-    }
+    while (!q.empty()) {
+        shared_ptr<Node> current = q.top();
+        q.pop();
 
-    for (int i = 0; i < (int)current->cars.size(); i++) {
-        if (moved[i]) continue;
-        int longestMove = max(abs((int)current->map.size() - current->cars[i].y), abs((int)current->map[0].size() - current->cars[i].x));
-        
-        for (char direction : {'U', 'D', 'L', 'R'}) {
-            for (int n = 1; n <= longestMove; n++) {
-                shared_ptr<Node> newNode = move(current, i, n, direction);
-                
-                if (newNode != nullptr) {
-                    currentMoves++;
-                    moved[i] = true;
-                    shared_ptr<Node> result = search(newNode, maxMoves, currentMoves, moved);
-                    
-                    if (result != nullptr) {
-                        return result;
+        if (current->specialCar->onTheEdge((int)current->map.size(), (int)current->map[0].size())) {
+            return current;
+        }
+
+        for (int i = 0; i < (int)current->cars.size(); i++) {
+            int longestMove = max(abs((int)current->map.size() - current->cars[i].y), abs((int)current->map[0].size() - current->cars[i].x));
+            for (char direction : {'U', 'D', 'L', 'R'}) {
+                for (int n = 1; n <= longestMove; n++) {
+                    shared_ptr<Node> newNode = move(current, i, n, direction);
+                    if (newNode != NULL) {
+                        currentMoves++;
+                        q.push(newNode);
                     }
-
-                    moved[i] = false;
-                    currentMoves--;
                 }
             }
         }
     }
-
     return nullptr;
 }
 
