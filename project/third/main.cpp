@@ -244,9 +244,25 @@ shared_ptr<Node> search(const shared_ptr<Node>& current, const int& maxMoves, in
 
     for (int i = 0; i < (int)current->cars.size(); i++) {
         if (moved[i]) continue;
-        int longestMove = max(abs((int)current->map.size() - current->cars[i].y), abs((int)current->map[0].size() - current->cars[i].x));
-        
+        int longestMove = 1;
         for (char direction : {'U', 'D', 'L', 'R'}) {
+            switch (direction)
+            {
+            case 'U':
+                longestMove = current->map.size() - current->cars[i].y;
+                break;
+            case 'D':
+                longestMove = current->cars[i].y;
+                break;
+            case 'L':
+                longestMove = current->cars[i].x;
+                break;
+            case 'R':
+                longestMove = current->map[0].size() - current->cars[i].x;
+                break;
+            default:
+                break;
+            }
             for (int n = 1; n <= longestMove; n++) {
                 shared_ptr<Node> newNode = move(current, i, n, direction);
                 
