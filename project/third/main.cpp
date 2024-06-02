@@ -35,22 +35,26 @@ public:
 class Node {
 public:
     vector<Car> cars;
-    shared_ptr<Node> parent;
-    string operation;
+    const shared_ptr<Node> parent;
     vector<string> map;
     stack<string> moves;
+    shared_ptr<Car> specialCar;
 
+    Node(vector<Car>& cars, const shared_ptr<Node>& parent, vector<string>& map, stack<string>& moves, shared_ptr<Car>& specialCar)
+        : cars(cars), parent(parent), map(map), moves(moves), specialCar(specialCar) {}
 
-    Node(vector<Car>& cars, shared_ptr<Node> parent, string operation, vector<string>& map)
-        : cars(cars), parent(parent), operation(operation), map(map) {}
-
-    Node(vector<Car>& cars, vector<string>& map) : cars(cars), map(map){
-        operation = "";
-        parent = nullptr;
+    Node(vector<Car>& cars, vector<string>& map) : cars(cars), map(map) {
+        // parent = nullptr;
+        for (auto& car : cars) {
+            if (car.special) {
+                specialCar = make_shared<Car>(car);
+                break;
+            }
+        }
     }
 };
 
-vector<string> loadMap(int H, int W) {
+vector<string> loadMap(const int& H, const int& W) {
     vector<string> map;
     string line;
     for(int i = 0; i < H; i++) {
@@ -60,7 +64,7 @@ vector<string> loadMap(int H, int W) {
     return map;
 }
 
-vector<Car> findCars(vector<string> &map) {
+vector<Car> findCars(const vector<string> &map) {
     vector<Car> cars;
     Car special_car(0, -1, -1, 'h');
     for (int y = 0; y < (int)map.size(); y++) {
@@ -132,8 +136,8 @@ vector<string> createMap(const vector<string> &previousMap, const vector<Car> &c
 }
 
 
-bool canMoveNSteps(const int &carNumber, Node& state, const int n, const char way) {
-    Car currentCar = state.cars[carNumber];
+bool canMoveNSteps(const int &carNumber, const shared_ptr<Node>& state, const int& n, const char& way) {
+    Car currentCar = state->cars[carNumber];
 
     if(currentCar.moved) return false;
 
@@ -147,7 +151,7 @@ bool canMoveNSteps(const int &carNumber, Node& state, const int n, const char wa
             return false;
         }
         for (int i = 1; i <= n; i++){
-            if (state.map[currentCar.y][currentCar.x - i] != '.'){
+            if (state->map[currentCar.y][currentCar.x - i] != '.'){
                 return false;
             }
         }
@@ -155,11 +159,11 @@ bool canMoveNSteps(const int &carNumber, Node& state, const int n, const char wa
     }
 
     else if (way == 'R'){
-        if (currentCar.x + n >= (int)state.map[0].size()){
+        if (currentCar.x + n >= (int)state->map[0].size()){
             return false;
         }
         for (int i = 1; i <= n; i++){
-            if (state.map[currentCar.y][currentCar.x + i + currentCar.size - 1] != '.'){
+            if (state->map[currentCar.y][currentCar.x + i + currentCar.size - 1] != '.'){
                 return false;
             }
         }
@@ -171,7 +175,7 @@ bool canMoveNSteps(const int &carNumber, Node& state, const int n, const char wa
             return false;
         }
         for (int i = 1; i <= n; i++){
-            if (state.map[currentCar.y - i][currentCar.x] != '.'){
+            if (state->map[currentCar.y - i][currentCar.x] != '.'){
                 return false;
             }
         }
@@ -179,11 +183,11 @@ bool canMoveNSteps(const int &carNumber, Node& state, const int n, const char wa
     }
 
     else if (way == 'D'){
-        if (currentCar.y + n >= (int)state.map.size()){
+        if (currentCar.y + n >= (int)state->map.size()){
             return false;
         }
         for (int i = 1; i <= n; i++){
-            if (state.map[currentCar.y + i + currentCar.size - 1][currentCar.x] != '.'){
+            if (state->map[currentCar.y + i + currentCar.size - 1][currentCar.x] != '.'){
                 return false;
             }
         }
@@ -193,7 +197,7 @@ bool canMoveNSteps(const int &carNumber, Node& state, const int n, const char wa
     return true;
 }
 
-shared_ptr<Node> move(shared_ptr<Node> prevState, const int &carNumber, int n, const char &way) {
+shared_ptr<Node> move(const shared_ptr<Node>& prevState, const int &carNumber, int n, const char &way) {
     vector<Car> cars = prevState->cars;
     vector<string> prevMap = prevState->map;
     stack<string> moves = prevState->moves;
@@ -201,8 +205,9 @@ shared_ptr<Node> move(shared_ptr<Node> prevState, const int &carNumber, int n, c
 
     int xBeforeMove = currentCar.x;
     int yBeforeMove = currentCar.y;
+    shared_ptr<Car> moved_special = nullptr;
 
-    if (canMoveNSteps(carNumber, *prevState, n, way)){
+    if (canMoveNSteps(carNumber, prevState, n, way)){
         currentCar.x += (way == 'R') ? n : (way == 'L') ? -n : 0;
         currentCar.y += (way == 'D') ? n : (way == 'U') ? -n : 0;
 
@@ -211,6 +216,9 @@ shared_ptr<Node> move(shared_ptr<Node> prevState, const int &carNumber, int n, c
         }
         moves.push(to_string(xBeforeMove) + ' ' + to_string(yBeforeMove) + ' ' + way + ' ' + to_string(n));
         currentCar.moved = true;
+        if (currentCar.special) {
+            moved_special = make_shared<Car>(currentCar);
+        }
     } else {
         return NULL;
     }
@@ -218,17 +226,16 @@ shared_ptr<Node> move(shared_ptr<Node> prevState, const int &carNumber, int n, c
     cars[carNumber] = currentCar;
     vector<string> newMap = createMap(prevMap, cars);
     
-    shared_ptr<Node> newState = make_shared<Node>(cars, prevState, "", newMap);
-    newState->moves = moves;
-    return newState;
+    if (currentCar.special) {
+        return make_shared<Node>(cars, prevState, newMap, moves, moved_special);
+    }
+    return make_shared<Node>(cars, prevState, newMap, moves, prevState->specialCar);
 }
 
 
-shared_ptr<Node> search(shared_ptr<Node> current, const int &maxMoves, int& currentMoves, vector<bool>& moved) {
-    for (Car& car : current->cars) {
-        if (car.special && car.onTheEdge((int)current->map.size(), (int)current->map[0].size())) {
-            return current;
-        }
+shared_ptr<Node> search(shared_ptr<Node> current, int maxMoves, int& currentMoves, vector<bool>& moved) {
+    if (current->specialCar->onTheEdge((int)current->map.size(), (int)current->map[0].size())) {
+        return current;
     }
 
     if (currentMoves >= maxMoves) {
@@ -259,10 +266,8 @@ shared_ptr<Node> search(shared_ptr<Node> current, const int &maxMoves, int& curr
         }
     }
 
-    // If no valid node is found, return null
     return nullptr;
 }
-
 
 int main() {
     int W, H, N;
