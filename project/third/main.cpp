@@ -197,7 +197,7 @@ bool canMoveNSteps(const int &carNumber, const shared_ptr<Node>& state, const in
     return true;
 }
 
-shared_ptr<Node> move(const shared_ptr<Node>& prevState, const int &carNumber, int n, const char &way) {
+shared_ptr<Node> move(const shared_ptr<Node>& prevState, const int &carNumber, int& n, const char &way) {
     vector<Car> cars = prevState->cars;
     vector<string> prevMap = prevState->map;
     stack<string> moves = prevState->moves;
@@ -233,7 +233,7 @@ shared_ptr<Node> move(const shared_ptr<Node>& prevState, const int &carNumber, i
 }
 
 
-shared_ptr<Node> search(shared_ptr<Node> current, int maxMoves, int& currentMoves, vector<bool>& moved) {
+shared_ptr<Node> search(const shared_ptr<Node>& current, const int& maxMoves, int& currentMoves, vector<bool>& moved) {
     if (current->specialCar->onTheEdge((int)current->map.size(), (int)current->map[0].size())) {
         return current;
     }
