@@ -40,12 +40,12 @@ public:
     vector<string> map;
     stack<string> moves;
     shared_ptr<Car> specialCar;
+    vector<bool> moved;
 
-    Node(vector<Car>& cars, const shared_ptr<Node>& parent, vector<string>& map, stack<string>& moves, shared_ptr<Car>& specialCar)
-        : cars(cars), parent(parent), map(map), moves(moves), specialCar(specialCar) {}
+    Node(vector<Car>& cars, const shared_ptr<Node>& parent, vector<string>& map, stack<string>& moves, shared_ptr<Car>& specialCar, vector<bool>& moved)
+        : cars(cars), parent(parent), map(map), moves(moves), specialCar(specialCar), moved(moved) {}
 
-    Node(vector<Car>& cars, vector<string>& map) : cars(cars), map(map) {
-        // parent = nullptr;
+    Node(vector<Car>& cars, vector<string>& map) : cars(cars), map(map), moved(cars.size(), false){
         for (auto& car : cars) {
             if (car.special) {
                 specialCar = make_shared<Car>(car);
@@ -226,11 +226,13 @@ shared_ptr<Node> move(const shared_ptr<Node>& prevState, const int &carNumber, i
 
     cars[carNumber] = currentCar;
     vector<string> newMap = createMap(prevMap, cars);
-    
+    vector<bool> moved = prevState->moved;
+    moved[carNumber] = true;
+
     if (currentCar.special) {
-        return make_shared<Node>(cars, prevState, newMap, moves, moved_special);
+        return make_shared<Node>(cars, prevState, newMap, moves, moved_special, moved);
     }
-    return make_shared<Node>(cars, prevState, newMap, moves, prevState->specialCar);
+    return make_shared<Node>(cars, prevState, newMap, moves, prevState->specialCar, moved);
 }
 
 int heuristic(const Node& node) {
@@ -262,7 +264,7 @@ priority_queue<shared_ptr<Node>, vector<shared_ptr<Node>>, NodeComparator> nodeQ
 
 
 
-shared_ptr<Node> search(const shared_ptr<Node>& current, const int& maxMoves, int& currentMoves, vector<bool>& moved) {
+shared_ptr<Node> search(const shared_ptr<Node>& current, const int& maxMoves, int& currentMoves) {
     priority_queue<shared_ptr<Node>, vector<shared_ptr<Node>>, NodeComparator> q;
     q.push(current);
     map<char, int> longestMoves = {{'U', 0}, {'D', 0}, {'L', 0}, {'R', 0}};
@@ -305,8 +307,7 @@ int main() {
     shared_ptr<Node> root = make_shared<Node>(cars, map);
 
     int currentMoves = 0;
-    vector<bool> moved(root->cars.size(), false);
-    shared_ptr<Node> solution = search(root, N, currentMoves, moved);
+    shared_ptr<Node> solution = search(root, N, currentMoves);
 
     stack<string> res;
     if (solution != NULL) {
