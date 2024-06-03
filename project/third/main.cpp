@@ -213,7 +213,7 @@ const bool canMoveNSteps(const int &carNumber, const shared_ptr<Node>& state, co
     return true;
 }
 
-shared_ptr<Node> move(const shared_ptr<Node>& prevState, const int &carNumber, int& n, const char &way) {
+const shared_ptr<Node> move(const shared_ptr<Node>& prevState, const int &carNumber, int& n, const char &way) {
     vector<Car> cars = prevState->cars;
     vector<string> prevMap = prevState->map;
     stack<string> moves = prevState->moves;
@@ -288,13 +288,17 @@ const int getLongestMove(const char& direction, const shared_ptr<Node>& current,
 
 
 const shared_ptr<Node> search(const shared_ptr<Node>& root, const int &maxMoves) {
-    queue<shared_ptr<Node>> q;
-    q.push(root);
+    vector<shared_ptr<Node>> q;
+    q.emplace_back(move(root));
     unordered_set<shared_ptr<Node>, NodePtrHasher> visited;
 
     while (!q.empty()) {
-        shared_ptr<Node> current = q.front();
-        q.pop();
+        int randomIndex = rand() % q.size();
+        shared_ptr<Node> current = q[randomIndex];
+        q.erase(q.begin() + randomIndex);
+
+        // remove random 20 % of the nodes
+        
 
         if (visited.find(current) != visited.end()) {
             continue;
@@ -312,11 +316,15 @@ const shared_ptr<Node> search(const shared_ptr<Node>& root, const int &maxMoves)
                 for (int n = 1; n <= longestMove; n++) {
                     shared_ptr<Node> newNode = move(current, i, n, direction);
                     if (newNode != NULL && (int)newNode->moves.size() <= maxMoves && visited.find(newNode) == visited.end()){
-                        q.push(newNode);
+                        if (q.size() > 1000 && rand() % 3 == 0) {
+                            continue;
+                        }
+                        q.emplace_back(move(newNode));
                     }
                 }
             }
         }
+
     }
 
     return nullptr;
