@@ -36,14 +36,13 @@ public:
 class Node {
 public:
     vector<Car> cars;
-    const shared_ptr<Node> parent;
     vector<string> map;
     stack<string> moves;
     shared_ptr<Car> specialCar;
     vector<bool> moved;
 
-    Node(vector<Car>& cars, const shared_ptr<Node>& parent, vector<string>& map, stack<string>& moves, shared_ptr<Car>& specialCar, vector<bool>& moved)
-        : cars(cars), parent(parent), map(map), moves(moves), specialCar(specialCar), moved(moved) {}
+    Node(vector<Car>& cars, vector<string>& map, stack<string>& moves, shared_ptr<Car>& specialCar, vector<bool>& moved)
+        : cars(cars), map(map), moves(moves), specialCar(specialCar), moved(moved) {}
 
     Node(vector<Car>& cars, vector<string>& map) : cars(cars), map(map), moved(cars.size(), false){
         for (auto& car : cars) {
@@ -230,9 +229,9 @@ shared_ptr<Node> move(const shared_ptr<Node>& prevState, const int &carNumber, i
     moved[carNumber] = true;
 
     if (currentCar.special) {
-        return make_shared<Node>(cars, prevState, newMap, moves, moved_special, moved);
+        return make_shared<Node>(cars, newMap, moves, moved_special, moved);
     }
-    return make_shared<Node>(cars, prevState, newMap, moves, prevState->specialCar, moved);
+    return make_shared<Node>(cars, newMap, moves, prevState->specialCar, moved);
 }
 
 int heuristic(const Node& node) {
