@@ -4,7 +4,7 @@
 #include <stack>
 #include <memory>
 #include <queue>
-#include <set>
+#include <unordered_set>
 
 
 using namespace std;
@@ -52,6 +52,24 @@ public:
         }
     }
 };
+
+struct NodeHasher {
+    size_t operator()(const Node &node) const {
+        size_t hash_ = 0;
+        for (const auto &car : node.cars) {
+            hash_ ^= hash<int>()(car.x) ^ hash<int>()(car.y) ^ hash<int>()(car.size) ^ hash<char>()(car.direction);
+        }
+        return hash_;
+    }
+};
+
+struct NodePtrHasher {
+    size_t operator()(const shared_ptr<Node>& node_ptr) const {
+        NodeHasher hasher;
+        return hasher(*node_ptr);
+    }
+};
+
 
 const vector<string> loadMap(const int& H, const int& W) {
     vector<string> map;
@@ -250,8 +268,7 @@ const int getLongestMove(const char& direction, const shared_ptr<Node>& current,
 const shared_ptr<Node> search(const shared_ptr<Node>& root, const int &maxMoves, int& currentMoves) {
     queue<shared_ptr<Node>> q;
     q.push(root);
-    set<shared_ptr<Node>> visited;
-
+    unordered_set<shared_ptr<Node>, NodePtrHasher> visited;
 
     while (!q.empty()) {
         shared_ptr<Node> current = q.front();
