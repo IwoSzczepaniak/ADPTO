@@ -21,14 +21,14 @@ public:
     bool special = false;
     bool moved = false;
 
-    Car(int size, int x, int y, char direction)
+    Car(const int& size, int x, const int y, const char& direction)
         : size(size), x(x), y(y), direction(direction) {}
 
-    void printCar() {
+    const void printCar() {
         cout << "size:" << size << " x:" << x << " y:" << y << " dir:" << direction << endl;
     }
 
-    bool onTheEdge(const int &H, const int &W){
+    const bool onTheEdge(const int &H, const int &W){
         return (direction == 'h' && x <= 0) || (direction == 'h' && x + size >= W) || (direction == 'v' && y + size >= H) || (direction == 'v' && y <= 0);
     }
 };
@@ -53,18 +53,20 @@ public:
     }
 };
 
-vector<string> loadMap(const int& H, const int& W) {
+const vector<string> loadMap(const int& H, const int& W) {
     vector<string> map;
+    map.reserve(H);
     string line;
     for(int i = 0; i < H; i++) {
         cin >> line;
-        map.push_back(line);
+        map.emplace_back(move(line));
     }
     return map;
 }
 
-vector<Car> findCars(const vector<string> &map) {
+const vector<Car> findCars(const vector<string> &map) {
     vector<Car> cars;
+    cars.reserve(64);
     Car special_car(0, -1, -1, 'h');
     for (int y = 0; y < (int)map.size(); y++) {
         for (int x = 0; x < (int)map[y].size(); x++) {
@@ -86,22 +88,22 @@ vector<Car> findCars(const vector<string> &map) {
                 while (x + size < (int)map[y].size() && map[y][x + size] == HORIZONTAL_SYMBOLS[size]) {
                     size++;
                 }
-                cars.push_back(Car(size, x, y, 'h'));
+                cars.emplace_back(size, x, y, 'h');
                 
             }else if (map[y][x] == 'x') {
                 int size = 1;
                 while (y + size < (int)map.size() && map[y + size][x] == VERTICAL_SYMBOLS[size]) {
                     size++;
                 }
-                cars.push_back(Car(size, x, y, 'v'));
+                cars.emplace_back(size, x, y, 'v');
             }
         }
     }
-    cars.push_back(special_car);
+    cars.emplace_back(move(special_car));
     return cars;
 }
 
-vector<string> createMap(const vector<string> &previousMap, const vector<Car> &cars) {
+const vector<string> createMap(const vector<string> &previousMap, const vector<Car> &cars) {
     vector<string> map = previousMap;
 
     for(int y = 1; y < (int)map.size() - 1; y++) {
@@ -135,7 +137,7 @@ vector<string> createMap(const vector<string> &previousMap, const vector<Car> &c
 }
 
 
-bool canMoveNSteps(const int &carNumber, const shared_ptr<Node>& state, const int& n, const char& way) {
+const bool canMoveNSteps(const int &carNumber, const shared_ptr<Node>& state, const int& n, const char& way) {
     Car currentCar = state->cars[carNumber];
 
     if(currentCar.moved) return false;
@@ -196,7 +198,7 @@ bool canMoveNSteps(const int &carNumber, const shared_ptr<Node>& state, const in
     return true;
 }
 
-shared_ptr<Node> move(const shared_ptr<Node>& prevState, const int &carNumber, int& n, const char &way) {
+const shared_ptr<Node> move(const shared_ptr<Node>& prevState, const int &carNumber, int& n, const char &way) {
     vector<Car> cars = prevState->cars;
     vector<string> prevMap = prevState->map;
     stack<string> moves = prevState->moves;
@@ -231,7 +233,7 @@ shared_ptr<Node> move(const shared_ptr<Node>& prevState, const int &carNumber, i
     return make_shared<Node>(cars, newMap, moves, prevState->specialCar);
 }
 
-int getLongestMove(const char& direction, const shared_ptr<Node>& current, const int& i){
+const int getLongestMove(const char& direction, const shared_ptr<Node>& current, const int& i){
     switch (direction)
             {
             case 'U':
@@ -248,7 +250,7 @@ int getLongestMove(const char& direction, const shared_ptr<Node>& current, const
 }
 
 
-shared_ptr<Node> search(const shared_ptr<Node>& root, const int &maxMoves, int& currentMoves) {
+const shared_ptr<Node> search(const shared_ptr<Node>& root, const int &maxMoves, int& currentMoves) {
     queue<shared_ptr<Node>> q;
     q.push(root);
     set<shared_ptr<Node>> visited;
