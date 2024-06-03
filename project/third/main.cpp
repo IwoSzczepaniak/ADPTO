@@ -267,6 +267,7 @@ const shared_ptr<Node> search(const shared_ptr<Node>& root, const int &maxMoves,
         }
 
         for (int i = 0; i < (int)current->cars.size(); i++) {
+            if(current->cars[i].moved) continue;
             for (char direction : {'U', 'D', 'L', 'R'}) {
                 int longestMove = getLongestMove(direction, current, i);
                 for (int n = 1; n <= longestMove; n++) {
