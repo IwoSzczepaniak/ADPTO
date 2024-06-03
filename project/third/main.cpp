@@ -103,12 +103,10 @@ const vector<Car> findCars(const vector<string> &map) {
     return cars;
 }
 
-const vector<string> createMap(const vector<string> &previousMap, const vector<Car> &cars) {
-    vector<string> map = previousMap;
-
+void modifyMap(vector<string> &map, const vector<Car> &cars) {
     for(int y = 1; y < (int)map.size() - 1; y++) {
         for(int x = 1; x < (int)map[y].size() - 1; x++) {
-            if (previousMap[y][x] != '#') map[y][x] = '.';
+            if (map[y][x] != '#') map[y][x] = '.';
         }
     }
 
@@ -133,7 +131,6 @@ const vector<string> createMap(const vector<string> &previousMap, const vector<C
             }
         }
     }
-    return map;
 }
 
 
@@ -198,11 +195,11 @@ const bool canMoveNSteps(const int &carNumber, const shared_ptr<Node>& state, co
     return true;
 }
 
-const shared_ptr<Node> move(const shared_ptr<Node>& prevState, const int &carNumber, int& n, const char &way) {
+shared_ptr<Node> move(const shared_ptr<Node>& prevState, const int &carNumber, int& n, const char &way) {
     vector<Car> cars = prevState->cars;
     vector<string> prevMap = prevState->map;
     stack<string> moves = prevState->moves;
-    Car currentCar = cars[carNumber];
+    Car currentCar = prevState->cars[carNumber];
 
     int xBeforeMove = currentCar.x;
     int yBeforeMove = currentCar.y;
@@ -225,12 +222,12 @@ const shared_ptr<Node> move(const shared_ptr<Node>& prevState, const int &carNum
     }
 
     cars[carNumber] = currentCar;
-    vector<string> newMap = createMap(prevMap, cars);
+    modifyMap(prevMap, cars);
     
     if (currentCar.special) {
-        return make_shared<Node>(cars, newMap, moves, moved_special);
+        return make_shared<Node>(cars, prevMap, moves, moved_special);
     }
-    return make_shared<Node>(cars, newMap, moves, prevState->specialCar);
+    return make_shared<Node>(cars, prevMap, moves, prevState->specialCar);
 }
 
 const int getLongestMove(const char& direction, const shared_ptr<Node>& current, const int& i){
