@@ -35,16 +35,14 @@ public:
 class Node {
 public:
     vector<Car> cars;
-    const shared_ptr<Node> parent;
     vector<string> map;
     stack<string> moves;
     shared_ptr<Car> specialCar;
 
-    Node(vector<Car>& cars, const shared_ptr<Node>& parent, vector<string>& map, stack<string>& moves, shared_ptr<Car>& specialCar)
-        : cars(cars), parent(parent), map(map), moves(moves), specialCar(specialCar) {}
+    Node(vector<Car>& cars, vector<string>& map, stack<string>& moves, shared_ptr<Car>& specialCar)
+        : cars(cars), map(map), moves(moves), specialCar(specialCar) {}
 
     Node(vector<Car>& cars, vector<string>& map) : cars(cars), map(map) {
-        // parent = nullptr;
         for (auto& car : cars) {
             if (car.special) {
                 specialCar = make_shared<Car>(car);
@@ -220,18 +218,33 @@ shared_ptr<Node> move(const shared_ptr<Node>& prevState, const int &carNumber, i
             moved_special = make_shared<Car>(currentCar);
         }
     } else {
-        return NULL;
+        return nullptr;
     }
 
     cars[carNumber] = currentCar;
     vector<string> newMap = createMap(prevMap, cars);
     
     if (currentCar.special) {
-        return make_shared<Node>(cars, prevState, newMap, moves, moved_special);
+        return make_shared<Node>(cars, newMap, moves, moved_special);
     }
-    return make_shared<Node>(cars, prevState, newMap, moves, prevState->specialCar);
+    return make_shared<Node>(cars, newMap, moves, prevState->specialCar);
 }
 
+int getLongestMove(char direction, const shared_ptr<Node>& current, const int& i){
+    switch (direction)
+            {
+            case 'U':
+                return current->map.size() - current->cars[i].y;
+            case 'D':
+                return current->cars[i].y;
+            case 'L':
+                return current->cars[i].x;
+            case 'R':
+                return current->map[0].size() - current->cars[i].x;
+            default:
+                return -1;
+            }
+}
 
 shared_ptr<Node> search(const shared_ptr<Node>& current, const int& maxMoves, int& currentMoves, vector<bool>& moved) {
     if (current->specialCar->onTheEdge((int)current->map.size(), (int)current->map[0].size())) {
@@ -242,28 +255,12 @@ shared_ptr<Node> search(const shared_ptr<Node>& current, const int& maxMoves, in
         return nullptr;
     }
 
-    for (int i = 0; i < (int)current->cars.size(); i++) {
+    for (int i = (int)current->cars.size() - 1; i > -1; i--) {
         if (moved[i]) continue;
-        int longestMove = 1;
         for (char direction : {'U', 'D', 'L', 'R'}) {
-            switch (direction)
-            {
-            case 'U':
-                longestMove = current->map.size() - current->cars[i].y;
-                break;
-            case 'D':
-                longestMove = current->cars[i].y;
-                break;
-            case 'L':
-                longestMove = current->cars[i].x;
-                break;
-            case 'R':
-                longestMove = current->map[0].size() - current->cars[i].x;
-                break;
-            default:
-                break;
-            }
-            for (int n = 1; n <= longestMove; n++) {
+            int longestMove = getLongestMove(direction, current, i);
+            
+            for (int n = longestMove - 1; n > 0; n--) {
                 shared_ptr<Node> newNode = move(current, i, n, direction);
                 
                 if (newNode != nullptr) {
