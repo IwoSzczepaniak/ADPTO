@@ -249,23 +249,45 @@ shared_ptr<Node> move(const shared_ptr<Node>& prevState, const int &carNumber, i
 }
 
 const int getLongestMove(const char& direction, const shared_ptr<Node>& current, const int& i){
+    int cnt = 1;
+    int start;
     switch (direction)
             {
             case 'U':
-                return current->map.size() - current->cars[i].y;
+                start = current->cars[i].y - 1;
+                while (start > 0 && current->map[start - 1][current->cars[i].x] == '.'){
+                    start--;
+                    cnt++;
+                }
+                return cnt;
             case 'D':
-                return current->cars[i].y;
+                start = current->cars[i].y + 1;
+                while (start < (int)current->map.size() - 1 && current->map[start + 1][current->cars[i].x] == '.'){
+                    start++;
+                    cnt++;
+                }
+                return cnt;
             case 'L':
-                return current->cars[i].x;
+                start = current->cars[i].x - 1;
+                while (start > 0 && current->map[current->cars[i].y][start - 1] == '.'){
+                    start--;
+                    cnt++;
+                }
+                return cnt;
             case 'R':
-                return current->map[0].size() - current->cars[i].x;
+                start = current->cars[i].x + 1;
+                while (start < (int)current->map[0].size() - 1 && current->map[current->cars[i].y][start + 1] == '.'){
+                    start++;
+                    cnt++;
+                }
+                return cnt;
             default:
                 return -1;
             }
 }
 
 
-const shared_ptr<Node> search(const shared_ptr<Node>& root, const int &maxMoves, int& currentMoves) {
+const shared_ptr<Node> search(const shared_ptr<Node>& root, const int &maxMoves) {
     queue<shared_ptr<Node>> q;
     q.push(root);
     unordered_set<shared_ptr<Node>, NodePtrHasher> visited;
@@ -289,8 +311,7 @@ const shared_ptr<Node> search(const shared_ptr<Node>& root, const int &maxMoves,
                 int longestMove = getLongestMove(direction, current, i);
                 for (int n = 1; n <= longestMove; n++) {
                     shared_ptr<Node> newNode = move(current, i, n, direction);
-                    if (newNode != NULL) {
-                        currentMoves++;
+                    if (newNode != NULL && (int)newNode->moves.size() <= maxMoves && visited.find(newNode) == visited.end()){
                         q.push(newNode);
                     }
                 }
@@ -310,8 +331,7 @@ int main() {
     vector<Car> cars = findCars(map);
     shared_ptr<Node> root = make_shared<Node>(cars, map);
 
-    int currentMoves = 0;
-    shared_ptr<Node> solution = search(root, N, currentMoves);
+    shared_ptr<Node> solution = search(root, N);
 
     stack<string> res;
     if (solution != NULL) {
@@ -327,6 +347,9 @@ int main() {
             cout << res.top() << endl;
             res.pop();
         }
+    }
+    else {
+        cout << "No solution" << endl;
     }
 
     return 0;
