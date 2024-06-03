@@ -5,6 +5,7 @@
 #include <memory>
 #include <queue>
 #include <unordered_set>
+#include <random>
 
 
 using namespace std;
@@ -291,14 +292,22 @@ const shared_ptr<Node> search(const shared_ptr<Node>& root, const int &maxMoves)
     vector<shared_ptr<Node>> q;
     q.emplace_back(move(root));
     unordered_set<shared_ptr<Node>, NodePtrHasher> visited;
+    srand(time(nullptr));
 
     while (!q.empty()) {
         int randomIndex = rand() % q.size();
         shared_ptr<Node> current = q[randomIndex];
         q.erase(q.begin() + randomIndex);
 
-        // remove random 20 % of the nodes
-        
+        // int q_size = (int)q.size();
+
+        // while ((int) q.size() > q_size * 0.95 && q.size() > 1000){
+        //     q.erase(q.begin() + rand() % q.size()); 
+        // }
+
+        // while ((int) q.size() > q_size * 0.9 && q.size() > 5000){
+        //     q.erase(q.begin() + rand() % q.size()); 
+        // }
 
         if (visited.find(current) != visited.end()) {
             continue;
@@ -309,17 +318,18 @@ const shared_ptr<Node> search(const shared_ptr<Node>& root, const int &maxMoves)
             return current;
         }
 
-        for (int i = 0; i < (int)current->cars.size(); i++) {
+        vector<int> indices(current->cars.size());
+        iota(indices.begin(), indices.end(), 0);
+        shuffle(indices.begin(), indices.end(), default_random_engine(rand()));
+
+        for (int i: indices) {
             if(current->cars[i].moved) continue;
             for (char direction : {'U', 'D', 'L', 'R'}) {
                 int longestMove = getLongestMove(direction, current, i);
                 for (int n = 1; n <= longestMove; n++) {
                     shared_ptr<Node> newNode = move(current, i, n, direction);
                     if (newNode != NULL && (int)newNode->moves.size() <= maxMoves && visited.find(newNode) == visited.end()){
-                        if (q.size() > 1000 && rand() % 3 == 0) {
-                            continue;
-                        }
-                        q.emplace_back(move(newNode));
+                        q.emplace_back(move(newNode));   
                     }
                 }
             }
